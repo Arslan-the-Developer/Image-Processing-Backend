@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="width:100%; display:flex; align-items:center; justify-content:center; flex-direction:column; font-family:Calibri; text-aligin-center;">
+
+  <p style="color: #000000; font-size:24px; width:100%; text-align:center;">Welcome, {{ username }}!</p>
+
+  <p style="color: #000000; font-size:20px; width:100%; text-align:center; margin-top:5px;">Here's Your OTP</p>
+
+  <div style="width: 100%; display:flex; align-items:center; justify-content:center; margin-top:15px;">
+
+    {% for digit in otp %}
+
+      <span style="width: 50px; height: 50px; border-radius:3px; background-color:#8ab9ff; color:white; display:flex; align-items:center; justify-content:center; text-aligin:center; margin-right:5px; font-size:20px;">{{digit}}</span>
+
+    {% endfor %}
+
+  </div>
+
+</body>
+</html>
