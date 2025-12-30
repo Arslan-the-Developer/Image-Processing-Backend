@@ -136,7 +136,7 @@ class ResizeImage(APIView):
 
         print('Now Resizing The Image.....')
 
-        resized_image_array = bl_resize(processed_img_array, new_w=new_w, new_h=new_h)
+        resized_original_image_array = bl_resize(processed_img_array, new_w=new_w, new_h=new_h)
 
         return Response(
             {
@@ -145,7 +145,7 @@ class ResizeImage(APIView):
                 "resize_scale": resize_scale,
                 "new_image_w": math.ceil(processed_img_array.shape[1]*resize_scale),
                 "new_image_h": math.ceil(processed_img_array.shape[0]*resize_scale),
-                "image": image_to_base64(Image.fromarray(resized_image_array)),
+                "image": image_to_base64(Image.fromarray(resized_original_image_array)),
             },
             status=status.HTTP_200_OK
         )
@@ -272,15 +272,26 @@ class ChannelAnalysisView(APIView):
             )
 
         # Always start from ORIGINAL
-        to_be_processed_img = original_img.copy().convert('L')
-        to_be_processed_img_array = np.array(to_be_processed_img)
+        to_be_processed_img_array = np.array(original_img.copy().convert('RGB'))
 
-        modified_image = sobel_edge_detection(to_be_processed_img_array)
+        split_result = channel_splitting(to_be_processed_img_array)
+
+        red_img,green_img,blue_img = split_result[0]
+        red_contribution,green_contribution,blue_contribution = split_result[1]
 
 
         return Response(
             {
-                "image": image_to_base64(modified_image),
+                "images": {
+                    'red_image':red_img,
+                    'green_image':green_img,
+                    'blue_image':blue_img
+                },
+                "contributions" : {
+                    'red_contribution':red_contribution,
+                    'green_contribution':green_contribution,
+                    'blue_contribution':blue_contribution
+                }
             },
             status=status.HTTP_200_OK
         )
@@ -485,3 +496,56 @@ def sobel_edge_detection(grayscale_image_array):
     edge_image = Image.fromarray(magnitude.astype(np.uint8))
 
     return edge_image
+
+
+
+
+def channel_splitting(original_image_array):
+
+    """
+    Takes a numpy array and Returns Red, Green & Blue Only Channel Images and also Returns the Channel Contribution of R,G,B
+    """
+
+    # Extract the R, G, B Arrays
+
+    R = original_image_array[:,:,0]
+    G = original_image_array[:,:,1]
+    B = original_image_array[:,:,2]
+
+    
+    # Image from Red Channel
+    zeros_original = np.zeros_like(original_image_array) # Creates the New array of same shape as Original Image Array (H,W,C)
+    zeros_original[:,:,0] = R # Fill in the Values for Red Channel and Kepp all others Zero
+    
+    red_only_image = image_to_base64(Image.fromarray(zeros_original)) # Form an Image from Three Channels, but only Red will dominate because all other channels are Zero
+
+    # Image from Green Channel
+    zeros_original = np.zeros_like(original_image_array) # Creates the New array of same shape as Original Image Array (H,W,C)
+    zeros_original[:,:,1] = G # Fill in the Values for Green Channel and Kepp all others Zero
+    
+    green_only_image = image_to_base64(Image.fromarray(zeros_original)) # Form an Image from Three Channels, but only Red will dominate because all other channels are Zero
+
+    # Image from Blue Channel
+    zeros_original = np.zeros_like(original_image_array) # Creates the New array of same shape as Original Image Array (H,W,C)
+    zeros_original[:,:,2] = B # Fill in the Values for Blue Channel and Kepp all others Zero
+    
+    blue_only_image = image_to_base64(Image.fromarray(zeros_original)) # Form an Image from Three Channels, but only Red will dominate because all other channels are Zero
+
+
+    # Now Checking the Contribution of Each Channel
+
+    total_sum = np.sum(original_image_array) # Calculate The Sum of All the Channels of Image
+
+    # Calculate Sum of Individual Channels
+    red_channel_sum = np.sum(R)
+    green_channel_sum = np.sum(G)
+    blue_channel_sum = np.sum(B)
+
+    # Calculate The Ratio And Get the Percentage Contribution of Each Channel
+    red_channel_contribution = ((red_channel_sum / total_sum) * 100).round(2)
+    green_channel_contribution = ((green_channel_sum / total_sum) * 100).round(2)
+    blue_channel_contribution = ((blue_channel_sum / total_sum) * 100).round(2)
+
+
+    return [(red_only_image,green_only_image,blue_only_image),(red_channel_contribution,green_channel_contribution,blue_channel_contribution)]
+
