@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 
@@ -21,7 +22,36 @@ from threading import Thread
 
 from .models import User, OTPVerifyAttempt, LoginAttempt
 
-# Create your views here.
+
+
+
+# -----------------------------------------------------------------------------
+
+
+class CheckUserAuthentication(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        return Response("Authenticated",status=status.HTTP_200_OK)
+
+
+
+# -----------------------------------------------------------------------------
+
+
+
+class GetUserDetails(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        return Response({"username" : request.user.username, "email" : request.user.email, "is_seller" : request.user.is_seller, "is_manager" : request.user.is_staff_member ,"is_admin" : request.user.is_admin, "is_protected" : request.user.is_two_factor_authentication_enabled})
+
+
+
 
 class UserRegistrationView(APIView):
 
@@ -48,7 +78,7 @@ class UserRegistrationView(APIView):
 
             first_error_field = next(iter(serializer.errors))  # Get the first key from the errors dictionary
 
-            first_error_message = f"{first_error_field} : {serializer.errors[first_error_field][0]}"  # Get the first error message for that field
+            first_error_message = f"{serializer.errors[first_error_field][0]}"  # Get the first error message for that field
 
             return Response({'error':first_error_message},status=status.HTTP_400_BAD_REQUEST)
 
