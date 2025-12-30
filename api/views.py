@@ -241,7 +241,46 @@ class EdgeDetectionView(APIView):
 
         return Response(
             {
-                "image": image_to_base64(to_be_processed_img_array),
+                "image": image_to_base64(modified_image),
+            },
+            status=status.HTTP_200_OK
+        )
+
+
+
+
+class ChannelAnalysisView(APIView):
+
+    def post(self, request):
+
+        image_id = request.data.get("image_id",None)
+
+        if not image_id:
+            return Response(
+                {"error": "image_id is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+        # Load original image from cache
+        original_img = cache.get(f"original:{image_id}")
+
+        if original_img is None:
+            return Response(
+                {"error": "Image expired or not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Always start from ORIGINAL
+        to_be_processed_img = original_img.copy().convert('L')
+        to_be_processed_img_array = np.array(to_be_processed_img)
+
+        modified_image = sobel_edge_detection(to_be_processed_img_array)
+
+
+        return Response(
+            {
+                "image": image_to_base64(modified_image),
             },
             status=status.HTTP_200_OK
         )

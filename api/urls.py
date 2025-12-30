@@ -8,4 +8,5 @@ urlpatterns = [
     path('resize_image', views.ResizeImage.as_view()),
     path('modify_geometry', views.ModifyGeometry.as_view()),
     path('edge_detection', views.EdgeDetectionView.as_view()),
+    path('channel_analysis', views.ChannelAnalysisView.as_view()),
 ]

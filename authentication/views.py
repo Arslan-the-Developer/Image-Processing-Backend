@@ -38,9 +38,6 @@ class CheckUserAuthentication(APIView):
 
 
 
-# -----------------------------------------------------------------------------
-
-
 
 class GetUserDetails(APIView):
 
@@ -48,8 +45,10 @@ class GetUserDetails(APIView):
 
     def get(self, request):
 
-        return Response({"username" : request.user.username, "email" : request.user.email, "is_seller" : request.user.is_seller, "is_manager" : request.user.is_staff_member ,"is_admin" : request.user.is_admin, "is_protected" : request.user.is_two_factor_authentication_enabled})
+        return Response({"username" : request.user.username, "email" : request.user.email, "user_plan" : request.user.user_plan})
 
+
+# -----------------------------------------------------------------------------
 
 
 

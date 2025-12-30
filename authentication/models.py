@@ -67,6 +67,7 @@ class User(AbstractBaseUser):
     otp_expiry = models.DateTimeField(blank=True,null=True)
     is_two_factor_authentication_enabled = models.BooleanField(default=False)
     two_factor_pin = models.CharField(max_length=255, blank=True, null=True)
+    user_plan = models.CharField(max_length=25, blank=True, null=True, default='')
 
 
     objects = MyUserManager()
