@@ -500,6 +500,46 @@ def sobel_edge_detection(grayscale_image_array):
 
 
 
+def sobel_edge_detection_vectorized(grayscale_image_array):
+    # Convert to float
+    img = grayscale_image_array.astype(np.float32)
+
+    # Sobel kernels
+    sobel_x = np.array([[-1, 0, 1],
+                        [-2, 0, 2],
+                        [-1, 0, 1]], dtype=np.float32)
+
+    sobel_y = np.array([[-1, -2, -1],
+                        [ 0,  0,  0],
+                        [ 1,  2,  1]], dtype=np.float32)
+
+    # Pad image
+    padded = np.pad(img, 1, mode="edge")
+
+    # Extract shifted windows (vectorized convolution)
+    gx = (
+        sobel_x[0,0] * padded[:-2, :-2] + sobel_x[0,1] * padded[:-2, 1:-1] + sobel_x[0,2] * padded[:-2, 2:] +
+        sobel_x[1,0] * padded[1:-1, :-2] + sobel_x[1,1] * padded[1:-1, 1:-1] + sobel_x[1,2] * padded[1:-1, 2:] +
+        sobel_x[2,0] * padded[2:, :-2] + sobel_x[2,1] * padded[2:, 1:-1] + sobel_x[2,2] * padded[2:, 2:]
+    )
+
+    gy = (
+        sobel_y[0,0] * padded[:-2, :-2] + sobel_y[0,1] * padded[:-2, 1:-1] + sobel_y[0,2] * padded[:-2, 2:] +
+        sobel_y[1,0] * padded[1:-1, :-2] + sobel_y[1,1] * padded[1:-1, 1:-1] + sobel_y[1,2] * padded[1:-1, 2:] +
+        sobel_y[2,0] * padded[2:, :-2] + sobel_y[2,1] * padded[2:, 1:-1] + sobel_y[2,2] * padded[2:, 2:]
+    )
+
+    # Gradient magnitude
+    magnitude = np.sqrt(gx**2 + gy**2)
+
+    # Normalize
+    magnitude = (magnitude / magnitude.max()) * 255
+
+    return Image.fromarray(magnitude.astype(np.uint8))
+
+
+
+
 def channel_splitting(original_image_array):
 
     """
